@@ -1,0 +1,128 @@
+workflows:
+  ios-release-workflow:
+    name: iOS Release Build
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    
+    environment:
+      vars:
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        BUNDLE_ID: "com.clickgo.provider"
+        APP_STORE_APP_ID: 6737867988
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    
+    scripts:
+      - name: Set Flutter version
+        script: |
+          flutter --version
+
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Verify workspace exists
+        script: |
+          ls -la ios/
+          if [ -d "ios/Runner.xcworkspace" ]; then
+            echo "✅ Runner.xcworkspace found"
+          else
+            echo "❌ Runner.xcworkspace NOT found - pod install may have failed"
+            exit 1
+          fi
+
+      - name: Build iOS App (Release - No Codesign)
+        script: |
+          flutter build ios --release --no-codesign
+    
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - /tmp/xcodebuild_logs/*.log
+    
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+
+  ios-appstore-workflow:
+    name: iOS App Store Build & Deploy
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    
+    integrations:
+      app_store_connect: CodeMagic
+    
+    environment:
+      groups:
+        - app_store_credentials
+      vars:
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        BUNDLE_ID: "com.clickgo.provider"
+        APP_STORE_APP_ID: 6737867988
+      flutter: stable
+      xcode: 15.2
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.clickgo.provider
+    
+    scripts:
+      - name: Set Flutter version
+        script: |
+          flutter --version
+
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Verify workspace and scheme
+        script: |
+          echo "Checking workspace..."
+          ls -la ios/Runner.xcworkspace/
+          echo "Checking scheme..."
+          ls -la ios/Runner.xcodeproj/xcshareddata/xcschemes/
+
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - build/ios/archive/Runner.xcarchive
+    
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+      
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false

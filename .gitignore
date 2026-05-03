@@ -1,0 +1,32 @@
+﻿# Flutter/Dart
+build/
+.dart_tool/
+.packages
+.pub/
+
+# Android
+android/.gradle/
+android/app/release/
+android/app/profile/
+android/app/debug/
+
+# iOS
+ios/Pods/
+ios/Runner.build/
+ios/Flutter/.last_build_id
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+xcuserdata/
+
+# Web
+web/.dart_tool/
+
+# Logs
+*.log
+
+# Misc
+pubspec.lock
+*.zip
