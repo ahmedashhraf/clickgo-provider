@@ -7,7 +7,8 @@ const DEFAULT_LANGUAGE = 'en';
 const primaryColor = Color(0xFF13a1b7);
 
 /// Live Url
-const DOMAIN_URL = "https://clickgo.qa"; // Don't add slash at the end of the url
+const DOMAIN_URL =
+    "https://clickgo.qa"; // Don't add slash at the end of the url
 
 const BASE_URL = "$DOMAIN_URL/api/";
 

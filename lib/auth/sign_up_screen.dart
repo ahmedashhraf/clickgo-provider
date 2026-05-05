@@ -12,6 +12,7 @@ import 'package:handyman_provider_flutter/components/app_widgets.dart';
 import 'package:handyman_provider_flutter/main.dart';
 import 'package:handyman_provider_flutter/models/user_type_response.dart';
 import 'package:handyman_provider_flutter/networks/rest_apis.dart';
+import 'package:handyman_provider_flutter/services/location_service.dart';
 import 'package:handyman_provider_flutter/services/phone_number_service.dart';
 import 'package:handyman_provider_flutter/components/address_autocomplete_bottom_sheet.dart';
 import 'package:handyman_provider_flutter/utils/common.dart';
@@ -142,6 +143,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }).whenComplete(() {
       appStore.setLoading(false);
     });
+  }
+
+  Future<void> _getCurrentLocation() async {
+    appStore.setLoading(true);
+    try {
+      var position = await getUserLocationPosition();
+      String address = await buildFullAddressFromLatLong(
+          position.latitude, position.longitude);
+      setState(() {
+        addressCont.text = address;
+        providerLat = position.latitude;
+        providerLng = position.longitude;
+      });
+    } catch (e) {
+      toast(e.toString());
+    } finally {
+      appStore.setLoading(false);
+    }
   }
 
   @override
@@ -516,8 +535,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     controller: addressCont,
                     focus: addressFocus,
                     decoration:
-                        inputDecoration(context, hint: languages.hintAddress),
-                    suffix: ic_location.iconImage(size: 18).paddingAll(14),
+                        inputDecoration(context, hint: languages.hintAddress).copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.my_location, color: context.primaryColor),
+                        onPressed: () {
+                          _getCurrentLocation();
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ]

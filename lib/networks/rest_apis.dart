@@ -266,11 +266,11 @@ Future<RegisterResponse> registerUser(Map<String, Object?> request, {List<Docume
     response = RegisterResponse.fromJson(jsonDecode(temp));
     // toast(jsonDecode(temp)['message'], print: true);
   }, onError: (error) {
-    toast(error.toString(), print: true);
     appStore.setLoading(false);
+    throw error;
   }).catchError((e) {
     appStore.setLoading(false);
-    toast(e.toString());
+    throw e;
   });
 
   if (response != null) {
@@ -2265,16 +2265,14 @@ Future<List<MultipartFile>> getMultipartImages({
 }) async {
   List<MultipartFile> multiPartRequest = [];
 
-  await Future.forEach<File>(files, (element) async {
-    int i = files.indexOf(element);
-
+  for (int i = 0; i < files.length; i++) {
     multiPartRequest.add(
       await MultipartFile.fromPath(
         name + i.toString(),
-        element.path,
+        files[i].path,
       ),
     );
-  });
+  }
 
   return multiPartRequest;
 }
